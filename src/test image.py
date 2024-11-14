@@ -3,6 +3,8 @@ from tkinter import colorchooser
 import numpy as np
 import cv2
 from PIL import Image, ImageDraw, ImageTk
+from diffusers import StableDiffusionControlNetPipeline, ControlNetModel, UniPCMultistepScheduler
+import torch
 
 class DrawingApp:
     def __init__(self, root):
@@ -60,31 +62,24 @@ class DrawingApp:
         self.last_y = None
 
     def complete(self):
-        # 将PIL图像转换为OpenCV图像
-        cv_image = cv2.cvtColor(np.array(self.image), cv2.COLOR_RGB2BGR)
+        # ControlNet
+        controlnet = ControlNetModel.from_pretrained("lllyasviel/sd-controlnet-canny", torch_dtype=torch.float16, use_safetensors=True)
+        pipe = StableDiffusionControlNetPipeline.from_pretrained(
+            "stable-diffusion-v1-5/stable-diffusion-v1-5", controlnet=controlnet, torch_dtype=torch.float16, use_safetensors=True
+        )
 
-        # 转换为灰度图
-        gray = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
+        pipe.scheduler = UniPCMultistepScheduler.from_config(pipe.scheduler.config)
+        pipe.enable_model_cpu_offload()
 
-        # 应用边缘检测
-        edges = cv2.Canny(gray, 100, 200)
+        canny_image=self.image
 
-        # 查找轮廓
-        contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        # 创建一个可以输入文字的地方，把prompt改成用户输入的文字
+        prompt="the mona lisa"
+        result_image = pipe(prompt, image=canny_image).images[0]
 
-        # 创建一个新的彩色图像
-        result_image = np.zeros(cv_image.shape, dtype=np.uint8)
+        result_image.save("output.jpg")
 
-        # 随机颜色填充轮廓
-        for contour in contours:
-            color = [np.random.randint(0, 255) for _ in range(3)]  # 随机颜色
-            cv2.drawContours(result_image, [contour], -1, color, -1)
-
-        # 将处理后的图像转回PIL格式
-        result_image_pil = Image.fromarray(cv2.cvtColor(result_image, cv2.COLOR_BGR2RGB))
-
-        # 显示生成的图像
-        self.display_result(result_image_pil)
+        self.display_result(result_image)
 
     def display_result(self, image):
         # 将PIL图像转换为PhotoImage格式
