@@ -11,6 +11,6 @@ pipe.scheduler = UniPCMultistepScheduler.from_config(pipe.scheduler.config)
 pipe.enable_model_cpu_offload()
 
 canny_image=Image.open("sketch.jpg")
-output = pipe("the mona lisa", image=canny_image).images[0]
+output = pipe("anime girl", image=canny_image).images[0]
 
 output.save("output.jpg")
