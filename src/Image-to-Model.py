@@ -1,9 +1,9 @@
 import torch
-import requests
 import numpy as np
-from io import BytesIO
 from diffusers import DiffusionPipeline
 from PIL import Image
+
+img_nobg_path = "src/tmp/image_nobg.png"
 
 pipeline = DiffusionPipeline.from_pretrained(
     "dylanebert/LGM-full",
@@ -12,9 +12,8 @@ pipeline = DiffusionPipeline.from_pretrained(
     trust_remote_code=True,
 ).to("cuda")
 
-input_url = "https://huggingface.co/datasets/dylanebert/iso3d/resolve/main/jpg@512/a_cat_statue.jpg"
-input_image = Image.open(BytesIO(requests.get(input_url).content))
+input_image = Image.open(img_nobg_path)
 input_image = np.array(input_image, dtype=np.float32) / 255.0
 result = pipeline("", input_image)
-result_path = "/tmp/output.ply"
+result_path = "src/tmp/output.ply"
 pipeline.save_ply(result, result_path)
