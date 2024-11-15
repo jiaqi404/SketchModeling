@@ -4,7 +4,9 @@ from PIL import Image
 
 sketch_path = "src/tmp/sketch.png"
 img_path = "src/tmp/image.png"
-prompt = "bag" + "white background"
+prompt = "bag"
+add_prompt = ", white background"
+prompt += add_prompt
 negative_prompt = "black and white image"
 
 controlnet = ControlNetModel.from_pretrained("lllyasviel/sd-controlnet-scribble", torch_dtype=torch.float16, use_safetensors=True)

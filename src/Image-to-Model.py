@@ -1,9 +1,13 @@
 import torch
+import requests
 import numpy as np
+from io import BytesIO
 from diffusers import DiffusionPipeline
 from PIL import Image
 
-img_nobg_path = "src/tmp/image_nobg.png"
+img_nobg_path = "src/tmp/image_nobg.jpg"
+model_ply_path = "src/tmp/model.ply"
+
 
 pipeline = DiffusionPipeline.from_pretrained(
     "dylanebert/LGM-full",
@@ -15,5 +19,5 @@ pipeline = DiffusionPipeline.from_pretrained(
 input_image = Image.open(img_nobg_path)
 input_image = np.array(input_image, dtype=np.float32) / 255.0
 result = pipeline("", input_image)
-result_path = "src/tmp/output.ply"
-pipeline.save_ply(result, result_path)
+pipeline.save_ply(result, model_ply_path)
+
