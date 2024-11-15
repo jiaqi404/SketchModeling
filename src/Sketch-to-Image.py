@@ -10,7 +10,11 @@ pipe = StableDiffusionControlNetPipeline.from_pretrained(
 pipe.scheduler = UniPCMultistepScheduler.from_config(pipe.scheduler.config)
 pipe.enable_model_cpu_offload()
 
-canny_image=Image.open("sketch.jpg")
-output = pipe("anime girl", image=canny_image).images[0]
+sketch_path = "src/tmp/sketch.jpg"
+img_path = "src/tmp/image.jpg"
+prompt = "anime girl"
 
-output.save("output.jpg")
+canny_image=Image.open(sketch_path)
+output = pipe(prompt, image=canny_image).images[0]
+
+output.save(img_path)
