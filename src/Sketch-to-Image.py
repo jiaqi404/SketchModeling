@@ -4,8 +4,8 @@ from PIL import Image
 
 sketch_path = "src/tmp/sketch.png"
 img_path = "src/tmp/image.png"
-prompt = "bag"
-add_prompt = ", white background"
+prompt = "hot air balloon"
+add_prompt = ", high contrast, white background"
 prompt += add_prompt
 negative_prompt = "black and white image"
 
@@ -17,7 +17,12 @@ pipe = StableDiffusionControlNetPipeline.from_pretrained(
 pipe.scheduler = UniPCMultistepScheduler.from_config(pipe.scheduler.config)
 pipe.enable_model_cpu_offload()
 
-canny_image=Image.open(sketch_path)
-output = pipe(prompt, negative_prompt=negative_prompt, image=canny_image).images[0]
+sketch_image=Image.open(sketch_path)
+output = pipe(
+    prompt, 
+    negative_prompt=negative_prompt, 
+    controlnet_conditioning_scale=0.75, 
+    image=sketch_image
+).images[0]
 
 output.save(img_path)
