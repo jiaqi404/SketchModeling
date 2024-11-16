@@ -1,13 +1,16 @@
 import gradio as gr
 from gradio_litmodel3d import LitModel3D
 import os
+from src.SketchToImage import sketch_to_image
+from src.BackgroundRemove import background_remove
+#from src.ImageToModel import image_to_model
 
-def run_button(input_img):
-    return 
+def generate_model(input_img):
+    return output_3d
 
-def sketch_to_image(input_img):
+def input_image(input_img):
+    input_img.save("src/tmp/sketch.png")
     return
-
 
 with gr.Blocks() as demo:
     gr.Markdown("""
@@ -34,6 +37,21 @@ with gr.Blocks() as demo:
                 processed_img = gr.Image(
                     type="pil", label="Processed Image", image_mode="RGBA", interactive=False
                 )
+            with gr.Row():
+                prompt = gr.Textbox(label="Pompt", interactive=True)
+                controlnet_conditioning_scale = gr.Slider(
+                    label="Controlnet Conditioning Scale",
+                    minimum=0.5,
+                    maximum=1.5,
+                    value=0.85,
+                    step=0.05,
+                    interactive=True
+                )
+            with gr.Accordion('Advanced options', open=False):
+                with gr.Row():
+                    negative_prompt = gr.Textbox(label="Negative Prompt", value="low quality, black and white image", interactive=True)
+                    add_prompt = gr.Textbox(label="Styles", value=", 3d rendered, shadeless, white background, intact and single object", interactive=True)
+                    num_inference_steps = gr.Number(label="Inference Steps", value=50, interactive=True)
             run_btn = gr.Button("Run", variant="primary")
 
         with gr.Column():
@@ -68,10 +86,18 @@ with gr.Blocks() as demo:
                         outputs=[output_3d],
                     )
 
-    run_btn.click(
-        run_button,
-        inputs=input_img,
-        outputs=output_3d,
+    run_btn.click(fn=input_image, inputs=[input_img]).success(
+        fn=sketch_to_image,
+        inputs=[input_img, prompt, negative_prompt, add_prompt, controlnet_conditioning_scale, num_inference_steps],
+        outputs=[generated_img]
+    ).success(
+        fn=background_remove,
+        inputs=[generated_img],
+        outputs=[processed_img]
+    ).success(
+        fn=generate_model,
+        inputs=[processed_img],
+        outputs=[output_3d]
     )
 
 demo.launch()
