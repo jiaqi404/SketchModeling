@@ -4,8 +4,8 @@ from PIL import Image
 
 sketch_path = "src/tmp/sketch.png"
 img_path = "src/tmp/image.png"
-prompt = "hot air balloon"
-add_prompt = ", high contrast, white background"
+prompt = "sneaker"
+add_prompt = ", realistic rendering, high contrast, white background"
 prompt += add_prompt
 negative_prompt = "black and white image"
 
@@ -21,7 +21,7 @@ sketch_image=Image.open(sketch_path)
 output = pipe(
     prompt, 
     negative_prompt=negative_prompt, 
-    controlnet_conditioning_scale=0.75, 
+    controlnet_conditioning_scale=0.8, 
     image=sketch_image
 ).images[0]
 
