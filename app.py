@@ -5,6 +5,10 @@ import os
 def run_button(input_img):
     return 
 
+def sketch_to_image(input_img):
+    return
+
+
 with gr.Blocks() as demo:
     gr.Markdown("""
         # SketchModeling: From Sketch to 3D Model
@@ -24,7 +28,13 @@ with gr.Blocks() as demo:
                 input_img = gr.Image(
                     type="pil", label="Input Image", sources="upload", image_mode="RGBA"
                 )
-            run_btn = gr.Button("Run", variant="primary", visible=True)
+                generated_img = gr.Image(
+                    type="pil", label="Gnerated Image", image_mode="RGBA", interactive=False
+                )
+                processed_img = gr.Image(
+                    type="pil", label="Processed Image", image_mode="RGBA", interactive=False
+                )
+            run_btn = gr.Button("Run", variant="primary")
 
         with gr.Column():
             output_3d = LitModel3D(
