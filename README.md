@@ -1,5 +1,5 @@
 # SketchModeling: From Sketch to 3D Model
-**SketchModeling** is a method for 3D mesh reconstruction from a sketch.
+**SketchModeling** is a method for 3D mesh generation from a sketch.
 
 ## Get Started
 ### Installation tips
