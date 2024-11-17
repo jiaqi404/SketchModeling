@@ -1,8 +1,8 @@
-diffusers==0.30.3
-gradio==5.0.0
-numpy==2.1.3
-Pillow==10.4
-transformers==4.45.1
+diffusers
+gradio
+numpy<2
+Pillow
+transformers
 accelerate
 scikit-image
 einops
@@ -14,5 +14,5 @@ pytorch-lightning
 xatlas
 trimesh
 Ninja
-git+https://github.com/graphdeco-inria/diff-gaussian-rasterization
+kornia
 git+https://github.com/NVlabs/nvdiffrast/
