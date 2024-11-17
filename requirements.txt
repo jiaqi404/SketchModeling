@@ -1,6 +1,5 @@
 diffusers==0.30.3
-gradio==4.44
-gradio_litmodel3d==0.0.1
+gradio==5.0.0
 numpy==2.1.3
 Pillow==10.4
 transformers==4.45.1
@@ -12,4 +11,8 @@ opencv-python
 plyfile
 omegaconf
 pytorch-lightning
+xatlas
+trimesh
+Ninja
 git+https://github.com/graphdeco-inria/diff-gaussian-rasterization
+git+https://github.com/NVlabs/nvdiffrast/
