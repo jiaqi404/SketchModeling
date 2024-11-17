@@ -10,14 +10,7 @@
 - Make sure you have installed the right version of [pytorch](https://pytorch.org/) and [xformers](https://github.com/facebookresearch/xformers)
 - Install the remaining requirements with `pip install -r requirements.txt`
 
-### Requesting Access and Login
-Models in this project are gated at [Hugging Face](https://huggingface.co), you may need to login to access them:
-- Log in to Hugging Face and create an access token with read permissions [here](https://huggingface.co/settings/tokens).
-- Run `huggingface-cli login` in the environment and enter the token.
-
 ### Load Gradio App
 ```sh
 python app.py
 ```
-
-

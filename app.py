@@ -189,11 +189,13 @@ with gr.Blocks() as demo:
         **SketchModeling** is a method for 3D mesh generation from a sketch.
 
         It has three steps:
-        1. It generates image from sketch using stable diffusion and controlnet.
+        1. It generates image from sketch using Stable Diffusion and ControlNet.
         2. It removes the background of the image using RMBG.
-        3. It reconsturcted the 3D model of the image using LGM.
+        3. It reconsturcted the 3D model of the image using InstantMesh.
 
         On below, you can either upload a sketch image or draw the sketch yourself. Then press Run and wait for the model to be generated.
+        
+        **ATTENTION:** If it's the first time you run SketchModeling, it could take some time to download models from the Internet.
         """)
     with gr.Row(variant="panel"):
         with gr.Column():
