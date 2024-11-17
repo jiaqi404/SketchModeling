@@ -2,14 +2,14 @@ import gradio as gr
 import os
 import numpy as np
 import torch
+from diffusers import StableDiffusionControlNetPipeline, ControlNetModel, UniPCMultistepScheduler
+from transformers import pipeline
 from diffusers import DiffusionPipeline, EulerAncestralDiscreteScheduler
 from torchvision.transforms import v2
 from einops import rearrange
 from omegaconf import OmegaConf
 from huggingface_hub import hf_hub_download
 
-from src.SketchToImage import sketch_to_image
-from src.BackgroundRemove import background_remove
 from src.utils.mesh_util import save_obj, save_glb
 from src.utils.train_util import instantiate_from_config
 from src.utils.camera_util import (
@@ -17,6 +17,8 @@ from src.utils.camera_util import (
     get_zero123plus_input_cameras,
     get_circular_camera_poses,
 )
+
+# ----------------------Settings-----------------------
 
 # Define the cache directory for model files
 model_cache_dir = 'ckpts/'
@@ -32,38 +34,97 @@ infer_config = config.infer_config
 # Device
 device = torch.device('cuda')
 
-# load diffusion model
-print('Loading diffusion model ...')
-pipeline = DiffusionPipeline.from_pretrained(
+# ----------------------Load Models-----------------------
+
+# load models for sketch-to-image
+controlnet = ControlNetModel.from_pretrained(
+    "lllyasviel/sd-controlnet-scribble", 
+    torch_dtype=torch.float16, 
+    use_safetensors=True,
+    cache_dir=model_cache_dir
+)
+pipeline_1 = StableDiffusionControlNetPipeline.from_pretrained(
+    "stable-diffusion-v1-5/stable-diffusion-v1-5", 
+    controlnet=controlnet, 
+    torch_dtype=torch.float16, 
+    use_safetensors=True,
+    cache_dir=model_cache_dir
+)
+pipeline_1.scheduler = UniPCMultistepScheduler.from_config(pipeline_1.scheduler.config)
+pipeline_1.enable_model_cpu_offload()
+
+# load models for background remove
+pipeline_2 = pipeline(
+    "image-segmentation", 
+    model="briaai/RMBG-1.4", 
+    trust_remote_code=True, 
+    device=0
+)
+pipeline_2.save_pretrained(model_cache_dir)
+
+# load models for image-to-model
+pipeline_3 = DiffusionPipeline.from_pretrained(
     "sudo-ai/zero123plus-v1.2", 
     custom_pipeline="zero123plus",
     torch_dtype=torch.float16,
     cache_dir=model_cache_dir
 )
-pipeline.scheduler = EulerAncestralDiscreteScheduler.from_config(
-    pipeline.scheduler.config, timestep_spacing='trailing'
+pipeline_3.scheduler = EulerAncestralDiscreteScheduler.from_config(
+    pipeline_3.scheduler.config, timestep_spacing='trailing'
 )
-
-# load custom white-background UNet
 unet_ckpt_path = hf_hub_download(repo_id="TencentARC/InstantMesh", filename="diffusion_pytorch_model.bin", repo_type="model", cache_dir=model_cache_dir)
 state_dict = torch.load(unet_ckpt_path, map_location='cpu')
-pipeline.unet.load_state_dict(state_dict, strict=True)
+pipeline_3.unet.load_state_dict(state_dict, strict=True)
+pipeline_3 = pipeline_3.to(device)
 
-pipeline = pipeline.to(device)
-
-# load reconstruction model
-print('Loading reconstruction model ...')
+# load models for 3d model reconstruction
 model_ckpt_path = hf_hub_download(repo_id="TencentARC/InstantMesh", filename="instant_mesh_large.ckpt", repo_type="model", cache_dir=model_cache_dir)
 model = instantiate_from_config(model_config)
 state_dict = torch.load(model_ckpt_path, map_location='cpu')['state_dict']
 state_dict = {k[14:]: v for k, v in state_dict.items() if k.startswith('lrm_generator.') and 'source_camera' not in k}
 model.load_state_dict(state_dict, strict=True)
-
 model = model.to(device)
 model.init_flexicubes_geometry(device, fovy=30.0)
 model = model.eval()
 
-print('Loading Finished!')
+print('----------------------Loading Finished-----------------------')
+
+# ----------------------Define functions-----------------------
+
+def input_image(input_img):
+    if input_img is None:
+        raise gr.Error("No image uploaded!")
+    else:
+        input_img.save("src/tmp/sketch.png")
+        return
+
+def sketch_to_image(
+        input_img, 
+        prompt, 
+        negative_prompt="low quality, black and white image", 
+        add_prompt=", 3d rendered, shadeless, white background, intact and single object", 
+        controlnet_conditioning_scale=0.75,
+        num_inference_steps=50
+    ):
+
+    output = pipeline_1(
+        prompt+add_prompt, 
+        num_inference_steps=int(num_inference_steps),
+        guidance_scale=10,
+        negative_prompt=negative_prompt, 
+        controlnet_conditioning_scale=float(controlnet_conditioning_scale), 
+        image=input_img
+    ).images[0]
+
+    output.save("src/tmp/image.png")
+
+    return output
+
+def background_remove(input_img):
+    output = pipeline_2(input_img)
+    output.save("src/tmp/image_nobg.png")
+    
+    return output
 
 def get_render_cameras(batch_size=1, M=120, radius=2.5, elevation=10.0, is_flexicubes=False):
     c2ws = get_circular_camera_poses(M=M, radius=radius, elevation=elevation)
@@ -78,7 +139,6 @@ def get_render_cameras(batch_size=1, M=120, radius=2.5, elevation=10.0, is_flexi
     return cameras
 
 def make_mesh(model_path, model_glb_path, planes):
-        
     with torch.no_grad():
         mesh_out = model.extract_mesh(
             planes,
@@ -95,9 +155,8 @@ def make_mesh(model_path, model_glb_path, planes):
     return model_path, model_glb_path
 
 def image_to_model(input_img):
-    # sampling
     generator = torch.Generator(device=device)
-    z123_image = pipeline(
+    z123_image = pipeline_3(
         input_img,
         generator=generator,
     ).images[0]
@@ -121,9 +180,7 @@ def image_to_model(input_img):
 
     return model_path, model_glb_path
 
-def input_image(input_img):
-    input_img.save("src/tmp/sketch.png")
-    return
+# ----------------------Build Gradio Interfaces-----------------------
 
 with gr.Blocks() as demo:
     gr.Markdown("""
