@@ -10,4 +10,6 @@ einops
 kiui
 opencv-python
 plyfile
+omegaconf
+pytorch-lightning
 git+https://github.com/graphdeco-inria/diff-gaussian-rasterization
