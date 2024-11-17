@@ -2,9 +2,8 @@ import gradio as gr
 import os
 import numpy as np
 import torch
-from diffusers import StableDiffusionControlNetPipeline, ControlNetModel, UniPCMultistepScheduler
-from transformers import pipeline
-from diffusers import DiffusionPipeline, EulerAncestralDiscreteScheduler
+from diffusers import StableDiffusionControlNetPipeline, ControlNetModel, UniPCMultistepScheduler, DiffusionPipeline, EulerAncestralDiscreteScheduler
+from transformers import pipeline, AutoModelForImageSegmentation
 from torchvision.transforms import v2
 from einops import rearrange
 from omegaconf import OmegaConf
@@ -54,15 +53,15 @@ pipeline_1.scheduler = UniPCMultistepScheduler.from_config(pipeline_1.scheduler.
 pipeline_1.enable_model_cpu_offload()
 
 # load models for background remove
-pipeline_2 = pipeline(
-    "image-segmentation", 
-    model="briaai/RMBG-1.4", 
-    trust_remote_code=True, 
-    device=0
+pipeline_2 = AutoModelForImageSegmentation.from_pretrained(
+    'briaai/RMBG-2.0', 
+    trust_remote_code=True,
+    cache_dir=model_cache_dir
 )
-pipeline_2.save_pretrained(model_cache_dir)
+pipeline_2.to(device)
+pipeline_2.eval()
 
-# load models for image-to-model
+# load models for image-to-model(step1: genenrate multi-view images)
 pipeline_3 = DiffusionPipeline.from_pretrained(
     "sudo-ai/zero123plus-v1.2", 
     custom_pipeline="zero123plus",
@@ -75,9 +74,10 @@ pipeline_3.scheduler = EulerAncestralDiscreteScheduler.from_config(
 unet_ckpt_path = hf_hub_download(repo_id="TencentARC/InstantMesh", filename="diffusion_pytorch_model.bin", repo_type="model", cache_dir=model_cache_dir)
 state_dict = torch.load(unet_ckpt_path, map_location='cpu')
 pipeline_3.unet.load_state_dict(state_dict, strict=True)
-pipeline_3 = pipeline_3.to(device)
+pipeline_3.to(device)
+# pipeline_3 = pipeline_3.to(device)
 
-# load models for 3d model reconstruction
+# load models for image-to-model(step2: 3d model reconstruction)
 model_ckpt_path = hf_hub_download(repo_id="TencentARC/InstantMesh", filename="instant_mesh_large.ckpt", repo_type="model", cache_dir=model_cache_dir)
 model = instantiate_from_config(model_config)
 state_dict = torch.load(model_ckpt_path, map_location='cpu')['state_dict']
@@ -85,7 +85,8 @@ state_dict = {k[14:]: v for k, v in state_dict.items() if k.startswith('lrm_gene
 model.load_state_dict(state_dict, strict=True)
 model = model.to(device)
 model.init_flexicubes_geometry(device, fovy=30.0)
-model = model.eval()
+model.eval()
+# model = model.eval()
 
 print('----------------------Loading Finished-----------------------')
 
