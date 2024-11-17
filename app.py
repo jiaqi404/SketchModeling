@@ -198,15 +198,24 @@ with gr.Blocks() as demo:
     with gr.Row(variant="panel"):
         with gr.Column():
             with gr.Row():
-                input_img = gr.Image(
-                    type="pil", label="Input Image", sources="upload", image_mode="RGBA"
-                )
-                generated_img = gr.Image(
-                    type="pil", label="Gnerated Image", image_mode="RGBA", interactive=False
-                )
-                processed_img = gr.Image(
-                    type="pil", label="Processed Image", image_mode="RGBA", interactive=False
-                )
+                with gr.Column():
+                    with gr.Tab("Sketch Pad"):
+                        input_img = gr.Sketchpad(
+                            crop_size=(640, 640), type="pil", label="Sketch Pad", image_mode="RGBA"
+                        )
+                    with gr.Tab("Input Image"):
+                        input_img = gr.Image(
+                            type="pil", label="Input Image", sources="upload", image_mode="RGBA"
+                        )
+                with gr.Column():
+                    with gr.Tab("Generated Image"):
+                        generated_img = gr.Image(
+                            type="pil", label="Gnerated Image", image_mode="RGBA", interactive=False
+                        )
+                    with gr.Tab("Processed Image"):
+                        processed_img = gr.Image(
+                            type="pil", label="Processed Image", image_mode="RGBA", interactive=False
+                        )
             with gr.Row():
                 prompt = gr.Textbox(label="Pompt", interactive=True)
                 controlnet_conditioning_scale = gr.Slider(
