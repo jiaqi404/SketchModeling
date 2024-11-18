@@ -15,4 +15,6 @@ xatlas
 trimesh
 Ninja
 kornia
+timm
+rembg
 git+https://github.com/NVlabs/nvdiffrast/

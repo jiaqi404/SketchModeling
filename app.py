@@ -1,14 +1,17 @@
 import gradio as gr
+from gradio import Brush
 import os
 import numpy as np
 import torch
+import rembg
+from PIL import Image
 from diffusers import StableDiffusionControlNetPipeline, ControlNetModel, UniPCMultistepScheduler, DiffusionPipeline, EulerAncestralDiscreteScheduler
-from transformers import pipeline, AutoModelForImageSegmentation
 from torchvision.transforms import v2
 from einops import rearrange
 from omegaconf import OmegaConf
 from huggingface_hub import hf_hub_download
 
+from src.utils.infer_util import remove_background
 from src.utils.mesh_util import save_obj, save_glb
 from src.utils.train_util import instantiate_from_config
 from src.utils.camera_util import (
@@ -52,15 +55,6 @@ pipeline_1 = StableDiffusionControlNetPipeline.from_pretrained(
 pipeline_1.scheduler = UniPCMultistepScheduler.from_config(pipeline_1.scheduler.config)
 pipeline_1.enable_model_cpu_offload()
 
-# load models for background remove
-pipeline_2 = AutoModelForImageSegmentation.from_pretrained(
-    'briaai/RMBG-2.0', 
-    trust_remote_code=True,
-    cache_dir=model_cache_dir
-)
-pipeline_2.to(device)
-pipeline_2.eval()
-
 # load models for image-to-model(step1: genenrate multi-view images)
 pipeline_3 = DiffusionPipeline.from_pretrained(
     "sudo-ai/zero123plus-v1.2", 
@@ -75,7 +69,6 @@ unet_ckpt_path = hf_hub_download(repo_id="TencentARC/InstantMesh", filename="dif
 state_dict = torch.load(unet_ckpt_path, map_location='cpu')
 pipeline_3.unet.load_state_dict(state_dict, strict=True)
 pipeline_3.to(device)
-# pipeline_3 = pipeline_3.to(device)
 
 # load models for image-to-model(step2: 3d model reconstruction)
 model_ckpt_path = hf_hub_download(repo_id="TencentARC/InstantMesh", filename="instant_mesh_large.ckpt", repo_type="model", cache_dir=model_cache_dir)
@@ -86,18 +79,32 @@ model.load_state_dict(state_dict, strict=True)
 model = model.to(device)
 model.init_flexicubes_geometry(device, fovy=30.0)
 model.eval()
-# model = model.eval()
 
 print('----------------------Loading Finished-----------------------')
 
 # ----------------------Define functions-----------------------
 
-def input_image(input_img):
-    if input_img is None:
+def input_image(sketch_img, upload_img):
+    sketch_img = sketch_img['composite']
+    bg_img = Image.new("RGBA", sketch_img.size, "WHITE")
+    sketch_img = Image.alpha_composite(bg_img, sketch_img)
+
+    # check if the sketch image is one solid color, if so, it's not a valid input
+    extrema = sketch_img.convert("L").getextrema()
+    if extrema[0] == extrema[1]:
+        sketch_img_is_None = True
+    else:
+        sketch_img_is_None = False
+    
+    if sketch_img_is_None and upload_img is None:
         raise gr.Error("No image uploaded!")
     else:
-        input_img.save("src/tmp/sketch.png")
-        return
+        if sketch_img_is_None:
+            upload_img.save("src/tmp/sketch.png")
+            return upload_img
+        else:
+            sketch_img.save("src/tmp/sketch.png")
+            return sketch_img
 
 def sketch_to_image(
         input_img, 
@@ -116,13 +123,13 @@ def sketch_to_image(
         controlnet_conditioning_scale=float(controlnet_conditioning_scale), 
         image=input_img
     ).images[0]
-
     output.save("src/tmp/image.png")
 
     return output
 
 def background_remove(input_img):
-    output = pipeline_2(input_img)
+    rembg_session = rembg.new_session()
+    output = remove_background(input_img, rembg_session)
     output.save("src/tmp/image_nobg.png")
     
     return output
@@ -137,6 +144,7 @@ def get_render_cameras(batch_size=1, M=120, radius=2.5, elevation=10.0, is_flexi
         intrinsics = FOV_to_intrinsics(30.0).unsqueeze(0).repeat(M, 1, 1).float().flatten(-2)
         cameras = torch.cat([extrinsics, intrinsics], dim=-1)
         cameras = cameras.unsqueeze(0).repeat(batch_size, 1, 1)
+    
     return cameras
 
 def make_mesh(model_path, model_glb_path, planes):
@@ -163,8 +171,8 @@ def image_to_model(input_img):
     ).images[0]
 
     input_img = np.asarray(z123_image, dtype=np.float32) / 255.0
-    input_img = torch.from_numpy(input_img ).permute(2, 0, 1).contiguous().float()     # (3, 960, 640)
-    input_img  = rearrange(input_img, 'c (n h) (m w) -> (n m) c h w', n=3, m=2)        # (6, 3, 320, 320)
+    input_img = torch.from_numpy(input_img ).permute(2, 0, 1).contiguous().float()
+    input_img  = rearrange(input_img, 'c (n h) (m w) -> (n m) c h w', n=3, m=2)
 
     input_cameras = get_zero123plus_input_cameras(batch_size=1, radius=4.0).to(device)
 
@@ -195,20 +203,22 @@ with gr.Blocks() as demo:
         3. It reconsturcted the 3D model of the image using InstantMesh.
 
         On below, you can either upload a sketch image or draw the sketch yourself. Then press Run and wait for the model to be generated.
-        
-        **ATTENTION:** If it's the first time you run SketchModeling, it could take some time to download models from the Internet.
         """)
     with gr.Row(variant="panel"):
         with gr.Column():
             with gr.Row():
                 with gr.Column():
                     with gr.Tab("Sketch Pad"):
-                        input_img = gr.Sketchpad(
-                            crop_size=(640, 640), type="pil", label="Sketch Pad", image_mode="RGBA"
+                        sketch_img = gr.Sketchpad(
+                            crop_size=(640, 640), type="pil", label="Sketch Pad", image_mode="RGBA", brush=Brush(colors=["#000000"])
                         )
-                    with gr.Tab("Input Image"):
+                    with gr.Tab("Upload Image"):
+                        upload_img = gr.Image(
+                            type="pil", label="Upload Image", sources="upload", image_mode="RGBA"
+                        )
+                    with gr.Tab("Input Image", visible=False):
                         input_img = gr.Image(
-                            type="pil", label="Input Image", sources="upload", image_mode="RGBA"
+                            type="pil", image_mode="RGBA", interactive=False, visible=False
                         )
                 with gr.Column():
                     with gr.Tab("Generated Image"):
@@ -248,7 +258,7 @@ with gr.Blocks() as demo:
                     interactive=False
                 )
 
-    run_btn.click(fn=input_image, inputs=[input_img]).success(
+    run_btn.click(fn=input_image, inputs=[sketch_img, upload_img], outputs=[input_img]).success(
         fn=sketch_to_image,
         inputs=[input_img, prompt, negative_prompt, add_prompt, controlnet_conditioning_scale, num_inference_steps],
         outputs=[generated_img]
