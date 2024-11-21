@@ -1,5 +1,4 @@
 # SketchModeling: From Sketch to 3D Model
-![Alt text](images/screenshot.png)
 **SketchModeling** is a method for 3D mesh generation from a sketch.
 
 ## Get Started
@@ -16,6 +15,11 @@ This is an example of how you may give instructions on setting up your project l
 - Install the remaining requirements with `pip install -r requirements.txt`
 
 ## Usage
+![Alt text](images/screenshot.png)
+This is our demo video:https://youtu.be/BoggiFAqmmY
+
+### Roadmap
+![Alt text](images/roadmap.png)
 
 ## Contributing
 
@@ -28,6 +32,7 @@ This is an example of how you may give instructions on setting up your project l
 </div>
 
 ## License
+Distributed under the MIT License. See LICENSE.txt for more information.
 
 ## Contact
 Zhang Jiaqi marycheung021213@gmail.com
