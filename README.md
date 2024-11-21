@@ -1,5 +1,5 @@
 # SketchModeling: From Sketch to 3D Model
-**SketchModeling** is a method for 3D mesh generation from a sketch.
+**SketchModeling** proposes a new method combining painting frame and natural language processing, through three steps of image synthesis, background removal and 3D modeling, with multi-modal input, automatic background removal and integrated modeling process as innovation points, which has important technical value and application prospect. An innovative approach that increases modeling efficiency and provides new ways to create across multiple domains.
 
 ## Get Started
 This is an example of how you may give instructions on setting up your project locally. To get a local copy up and running follow these simple example steps.
