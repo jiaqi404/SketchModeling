@@ -17,7 +17,7 @@ conda create --name sketchmodeling python=3.12
 conda activate sketchmodeling
 
 # Install PyTorch and xformers
-# You may need to install another xformers version if you use a different python & cuda version
+# You may need to install another pytorch & xformers version if you use a different python & cuda version
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
 pip install -U xformers --index-url https://download.pytorch.org/whl/cu124
 
