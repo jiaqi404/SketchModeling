@@ -3,6 +3,7 @@
 
 ## About SketchModeling
 ### How it works
+![Alt text](images/how-it-works.png)
 
 ## Getting Started
 ### Install Dependencies
@@ -18,6 +19,9 @@ python app.py
 ```
 ### Demo Video
 link: https://youtu.be/BoggiFAqmmY
+![Alt text](images/demo-video.png)
+
+### Start with Docker
 
 ## License
 Distributed under the MIT License. See `LICENSE.txt` for more information.
