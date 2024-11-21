@@ -1,5 +1,5 @@
 # SketchModeling: From Sketch to 3D Model
-**SketchModeling** is a method for 3D mesh generation from a sketch, through three steps of image generation, background removal and 3D modeling.
+**SketchModeling** is a method for 3D mesh generation from a sketch, through three steps of image generation, background removal and 3D reconstruction.
 
 ## About SketchModeling
 ### How it works
@@ -44,7 +44,7 @@ docker run -it --platform=linux/amd64 --gpus all -v $MODEL_DIR:/workspace/sketch
 ```
 
 ## License
-Distributed under the MIT License. See `LICENSE.txt` for more information.
+Distributed under the MIT License. See `LICENSE` for more information.
 
 ## Contact
 - Zhang Jiaqi marycheung021213@gmail.com
