@@ -3,7 +3,7 @@
 
 ## About SketchModeling
 ### How it works
-![Alt text](images/how-it-works.png)
+![Alt text](images/model-structure.png)
 
 ## Getting Started
 ### Install Dependencies
