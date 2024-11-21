@@ -12,6 +12,18 @@
 - if you have problem installing CUDA, try installing Nsight separatly, then installing CUDA in advanced mode and uncheck Nsight.
 - Install the right version of [pytorch](https://pytorch.org/) and [xformers](https://github.com/facebookresearch/xformers)
 - Install the remaining requirements with `pip install -r requirements.txt`
+```sh
+conda create --name sketchmodeling python=3.12
+conda activate sketchmodeling
+
+# Install PyTorch and xformers
+# You may need to install another xformers version if you use a different python & cuda version
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
+pip install -U xformers --index-url https://download.pytorch.org/whl/cu124
+
+# Install other requirements
+pip install -r requirements.txt
+```
 
 ### Load Gradio App
 ```sh
@@ -19,9 +31,17 @@ python app.py
 ```
 ### Demo Video
 link: https://youtu.be/BoggiFAqmmY
-![Alt text](images/demo-video.png)
 
 ### Start with Docker
+You can also use Docker to set up environment. This docker setup is tested on Ubuntu.
+- Build docker image with `docker build -t sketchmodeling .`
+- Run docker image with a local model cache (so it is fast when container is started next time):
+```sh
+mkdir -p $HOME/models/
+export MODEL_DIR=$HOME/models/
+
+docker run -it --platform=linux/amd64 --gpus all -v $MODEL_DIR:/workspace/sketchmodeling/models sketchmodeling
+```
 
 ## License
 Distributed under the MIT License. See `LICENSE.txt` for more information.
