@@ -20,11 +20,18 @@ This is an example of how you may give instructions on setting up your project l
 ## Contributing
 
 ### Top contributors:
-我们的头像
+![Alt text](images/zjq1.png)
+![Alt text](images/zsn1.png)
+![Alt text](images/zyh1.png)
 
 ## License
 
 ## Contact
+Zhang Jiaqi marycheung021213@gmail.com
+Zhou Shengnan 24058989g@connect.polyu.hk
+Zeng Yihan zengyihan9@gmail.com
+
+## Acknowledgments
 
 ### Load Gradio App
 ```sh
