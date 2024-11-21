@@ -20,7 +20,12 @@ This is an example of how you may give instructions on setting up your project l
 ## Contributing
 
 ### Top contributors:
-![Alt text](images/zjq1.png) ![Alt text](images/zsn1.png) ![Alt text](images/zyh1.png)
+
+<div style="display: flex; justify-content: space-between;">
+  <img src="./zjq1.png" alt="ZJQ Image" style="width: 30%;"/>
+  <img src="./zsn1.png" alt="ZSN Image" style="width: 30%;"/>
+  <img src="./zyh1.png" alt="ZYH Image" style="width: 30%;"/>
+</div>
 
 ## License
 
