@@ -17,4 +17,5 @@ Ninja
 kornia
 timm
 rembg
+onnxruntime
 git+https://github.com/NVlabs/nvdiffrast/
