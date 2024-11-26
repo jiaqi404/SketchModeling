@@ -1,9 +1,9 @@
 # SketchModeling: From Sketch to 3D Model
 **SketchModeling** is a method for 3D mesh generation from a sketch, through three steps of image generation, background removal and 3D reconstruction.
-![Alt text](images/outputs-result.png)
+![Alt text](assets/outputs-result.png)
 
 ### How it works
-![Alt text](images/model-structrue.png)
+![Alt text](assets/model-structrue.png)
 
 ## Getting Started
 ### Install Dependencies
@@ -35,7 +35,8 @@ python app.py
 link: https://youtu.be/BoggiFAqmmY
 
 ### Start with Docker
-⚠️WARNING⚠️: It is under testing. Do not use it at present. --2024/11/26
+*⚠️WARNING⚠️: It is under testing. Do not use it at present. --2024/11/26*
+
 You can also use Docker to set up environment automatically. This docker setup is tested on Ubuntu.
 - Open [Docker desktop](https://www.docker.com/products/docker-desktop/)
 - Build docker image:
