@@ -34,8 +34,6 @@ python app.py
 link: https://youtu.be/BoggiFAqmmY
 
 ### Start with Docker
-*⚠️WARNING⚠️: It is under testing. Do not use it at present. --2024/11/26*
-
 You can also use Docker to set up environment automatically.
 - Open [Docker desktop](https://www.docker.com/products/docker-desktop/)
 - Build docker image with `docker build -t sketchmodeling .`
