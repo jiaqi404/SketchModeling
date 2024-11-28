@@ -18,7 +18,6 @@ conda create --name sketchmodeling python=3.12
 conda activate sketchmodeling
 
 # Install PyTorch and xformers
-# You may need to install another pytorch & xformers version if you use a different python & cuda version
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
 pip install -U xformers --index-url https://download.pytorch.org/whl/cu124
 
@@ -37,16 +36,10 @@ link: https://youtu.be/BoggiFAqmmY
 ### Start with Docker
 *⚠️WARNING⚠️: It is under testing. Do not use it at present. --2024/11/26*
 
-You can also use Docker to set up environment automatically. This docker setup is tested on Ubuntu.
+You can also use Docker to set up environment automatically.
 - Open [Docker desktop](https://www.docker.com/products/docker-desktop/)
-- Build docker image:
-```sh
-docker build -t sketchmodeling .
-```
-- Run docker image:
-```sh
-docker run -it --platform=linux/amd64 --gpus all sketchmodeling
-```
+- Build docker image with `docker build -t sketchmodeling .`
+- Run docker image with `docker run -it --platform=linux/amd64 --gpus all sketchmodeling`
 
 ## License
 Distributed under the MIT License. See `LICENSE` for more information.
