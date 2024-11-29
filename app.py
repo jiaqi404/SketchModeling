@@ -272,4 +272,4 @@ with gr.Blocks() as demo:
         outputs=[output_obj, output_glb]
     )
 
-demo.launch()
+demo.launch(share=True)
